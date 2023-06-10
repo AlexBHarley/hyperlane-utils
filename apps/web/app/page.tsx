@@ -76,7 +76,11 @@ export default function Page() {
                         { address, chainMetadata: chainIdToMetadata[chainId] },
                         ...icas,
                       ].map((ica, index) => (
-                        <AccountRow highlight={index === 0} {...ica} />
+                        <AccountRow
+                          key={ica.chainMetadata.chainId}
+                          highlight={index === 0}
+                          {...ica}
+                        />
                       ))}
                     </tbody>
                   </table>

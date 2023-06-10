@@ -37,7 +37,7 @@ export const SessionProposal: FC<{
             </dt>
             <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
               {proposal.requiredNamespaces.eip155.chains.map((x) => (
-                <div className="text-sm ">
+                <div key={x} className="text-sm">
                   {
                     chainIdToMetadata[parseInt(ChainId.parse(x).reference)]
                       .displayName
@@ -52,7 +52,9 @@ export const SessionProposal: FC<{
             </dt>
             <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
               {proposal.requiredNamespaces.eip155.methods.map((x) => (
-                <div className="text-sm">{x}</div>
+                <div key={x} className="text-sm">
+                  {x}
+                </div>
               ))}
             </dd>
           </div>
