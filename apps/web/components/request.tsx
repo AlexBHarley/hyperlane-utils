@@ -2,11 +2,15 @@ import { chainIdToMetadata } from "@hyperlane-xyz/sdk";
 import { PendingRequestTypes } from "@walletconnect/types";
 import { ChainId } from "caip";
 import { FC } from "react";
-import { useAccount, useChainId } from "wagmi";
+import { Address, useAccount, useChainId } from "wagmi";
 
 import { useIcaAddresses } from "../hooks/use-ica-addresses";
 import { web3wallet } from "../hooks/use-initialise-walletconnect";
 import { useWalletConnect } from "../hooks/use-walletconnect";
+
+function formatAddress(address: Address) {
+  return `${address.slice(0, 8)}...${address.slice(address.length - 8)}`;
+}
 
 export const Request: FC<{
   request: PendingRequestTypes.Struct;
@@ -48,12 +52,13 @@ export const Request: FC<{
             Account
           </dt>
           <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-            {
+            {formatAddress(
               [
                 { address, chainMetadata: chainIdToMetadata[chainId] },
                 ...(icas ?? []),
-              ].find((x) => x.chainMetadata.chainId === chainId)?.address
-            }
+              ].find((x) => x.chainMetadata.chainId === chainId)?.address ??
+                "0x"
+            )}
           </dd>
         </div>
         <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
