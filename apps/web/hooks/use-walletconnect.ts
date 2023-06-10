@@ -75,11 +75,13 @@ export function useWalletConnect() {
   const { address } = useAccount();
   const wallet = useWalletClient();
 
-  const initialised = useWalletConnectStore.useInitialised();
-  const removeProposal = useWalletConnectStore.useRemoveProposal();
-  const addSession = useWalletConnectStore.useAddSession();
-  const removeSession = useWalletConnectStore.useRemoveSession();
-  const removeRequest = useWalletConnectStore.useRemoveRequest();
+  const {
+    initialised,
+    removeProposal,
+    addSession,
+    removeSession,
+    removeRequest,
+  } = useWalletConnectStore();
 
   const approveProposal = async (proposal: ProposalTypes.Struct) => {
     const namespaces = buildApprovedNamespaces({

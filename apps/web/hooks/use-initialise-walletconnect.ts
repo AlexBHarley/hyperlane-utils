@@ -13,10 +13,8 @@ const core = new Core({
 });
 
 export function useInitialiseWalletConnect() {
-  const initialised = useWalletConnectStore.useInitialised();
-  const addProposal = useWalletConnectStore.useAddProposal();
-  const removeSession = useWalletConnectStore.useRemoveSession();
-  const addRequest = useWalletConnectStore.useAddRequest();
+  const { initialised, addProposal, removeSession, addRequest } =
+    useWalletConnectStore();
 
   const init = useCallback(async () => {
     web3wallet = await Web3Wallet.init({
