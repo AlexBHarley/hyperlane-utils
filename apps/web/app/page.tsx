@@ -32,11 +32,13 @@ export default function Page() {
   };
 
   return (
-    <div className="max-w-screen-xl mx-auto space-y-6">
-      <ConnectButton />
+    <div className="max-w-screen-xl mx-auto space-y-6 px-4">
+      <div className="flex items-center justify-center mt-10">
+        <ConnectButton />
+      </div>
 
       <div>
-        <h3 className="text-3xl mb-2">Accounts</h3>
+        <h3 className="text-3xl mb-2">Interchain Accounts</h3>
         <div className="rounded border border-gray-300">
           <div className="px-4 sm:px-6 lg:px-8">
             <div className="flow-root">
