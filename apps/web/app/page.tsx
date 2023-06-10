@@ -119,7 +119,7 @@ export default function Page() {
                 </button>
               </div>
               <p className="mt-2 text-sm text-gray-500" id="email-description">
-                Connect to your favourite dapps!
+                Connect to your favourite (WC2 enabled) dapps!
               </p>
             </div>
           </div>
