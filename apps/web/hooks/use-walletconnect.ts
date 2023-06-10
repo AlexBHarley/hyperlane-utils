@@ -157,11 +157,13 @@ export function useWalletConnect() {
         functionName: "callRemote",
         args: [
           destinationChainId,
-          // tx.to,
-          // tx.value,
-          // tx.data,
-          // Temp while no things support WC2
           [
+            // {
+            //   to: utils.addressToBytes32(tx.to),
+            //   value: "0x0",
+            //   data: "0x1",
+            // },
+            // Temp override while no things support WC2
             {
               to: utils.addressToBytes32(
                 "0xBC3cFeca7Df5A45d61BC60E7898E63670e1654aE"
