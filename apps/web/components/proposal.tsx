@@ -1,10 +1,9 @@
-"use client";
-
 import { chainIdToMetadata } from "@hyperlane-xyz/sdk";
-import { ProposalTypes, SignClientTypes } from "@walletconnect/types";
-import { FC } from "react";
-import { useWalletConnect } from "../hooks/use-walletconnect";
+import { ProposalTypes } from "@walletconnect/types";
 import { ChainId } from "caip";
+import { FC } from "react";
+
+import { useWalletConnect } from "../hooks/use-walletconnect";
 
 export const SessionProposal: FC<{
   proposal: ProposalTypes.Struct;

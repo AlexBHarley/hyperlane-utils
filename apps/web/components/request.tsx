@@ -1,20 +1,17 @@
-"use client";
-
-import { PendingRequestTypes, SessionTypes } from "@walletconnect/types";
-import { FC } from "react";
 import { chainIdToMetadata } from "@hyperlane-xyz/sdk";
+import { PendingRequestTypes } from "@walletconnect/types";
 import { ChainId } from "caip";
+import { FC } from "react";
+import { useAccount, useChainId } from "wagmi";
 
-import { useWalletConnect } from "../hooks/use-walletconnect";
 import { useIcaAddresses } from "../hooks/use-ica-addresses";
 import { web3wallet } from "../hooks/use-initialise-walletconnect";
-import { useAccount, useChainId } from "wagmi";
+import { useWalletConnect } from "../hooks/use-walletconnect";
 
 export const Request: FC<{
   request: PendingRequestTypes.Struct;
 }> = ({ request }) => {
   const { approveRequest, rejectRequest } = useWalletConnect();
-  console.log(request);
   const icas = useIcaAddresses();
   const { address } = useAccount();
   const chainId = useChainId();

@@ -1,6 +1,3 @@
-/**
- * Methods
- */
 export const EIP155_SIGNING_METHODS = {
   PERSONAL_SIGN: "personal_sign",
   ETH_SIGN: "eth_sign",

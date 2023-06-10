@@ -1,7 +1,6 @@
-"use client";
-
 import { SessionTypes } from "@walletconnect/types";
 import { FC } from "react";
+
 import { useWalletConnect } from "../hooks/use-walletconnect";
 
 export const Session: FC<{

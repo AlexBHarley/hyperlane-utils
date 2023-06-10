@@ -1,22 +1,79 @@
 import {
+  chainIdToMetadata,
+  hyperlaneContractAddresses,
+} from "@hyperlane-xyz/sdk";
+import { utils } from "@hyperlane-xyz/utils";
+import { formatJsonRpcError, formatJsonRpcResult } from "@json-rpc-tools/utils";
+import {
   PendingRequestTypes,
   ProposalTypes,
   SessionTypes,
-  SignClientTypes,
 } from "@walletconnect/types";
 import { buildApprovedNamespaces, getSdkError } from "@walletconnect/utils";
-import { useAccount, useChainId, useNetwork } from "wagmi";
+import { ChainId } from "caip";
+import {
+  encodeFunctionData,
+  hexToBigInt,
+  isAddressEqual,
+  parseAbi,
+} from "viem";
+import { useAccount, useChainId, useNetwork, useWalletClient } from "wagmi";
+
 import { useWalletConnectStore } from "../app/state/walletconnect";
 import { EIP155_SIGNING_METHODS } from "../constants";
 import { useIcaAddresses } from "./use-ica-addresses";
 import { web3wallet } from "./use-initialise-walletconnect";
-import { formatJsonRpcError, formatJsonRpcResult } from "@json-rpc-tools/utils";
+
+const callRemoteAbi = [
+  {
+    inputs: [
+      {
+        internalType: "uint32",
+        name: "_destination",
+        type: "uint32",
+      },
+      {
+        components: [
+          {
+            internalType: "bytes32",
+            name: "to",
+            type: "bytes32",
+          },
+          {
+            internalType: "uint256",
+            name: "value",
+            type: "uint256",
+          },
+          {
+            internalType: "bytes",
+            name: "data",
+            type: "bytes",
+          },
+        ],
+        internalType: "struct CallLib.Call[]",
+        name: "_calls",
+        type: "tuple[]",
+      },
+    ],
+    name: "callRemote",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+];
 
 export function useWalletConnect() {
   const { chains: wagmiChains } = useNetwork();
   const icas = useIcaAddresses();
   const chainId = useChainId();
   const { address } = useAccount();
+  const wallet = useWalletClient();
 
   const initialised = useWalletConnectStore.useInitialised();
   const removeProposal = useWalletConnectStore.useRemoveProposal();
@@ -66,9 +123,74 @@ export function useWalletConnect() {
     removeSession(session);
   };
 
-  const approveRequest = (request: PendingRequestTypes.Struct) => {
-    console.log("approved", request);
-    // await web3wallet.respondSessionRequest()
+  const approveRequest = async (request: PendingRequestTypes.Struct) => {
+    if (
+      request.params.request.method !==
+      EIP155_SIGNING_METHODS.ETH_SEND_TRANSACTION
+    ) {
+      return rejectRequest(request);
+    }
+
+    const destinationChainId = parseInt(
+      ChainId.parse(request.params.chainId).reference
+    );
+
+    const { id, topic } = request;
+
+    const tx = request.params.request.params[0];
+
+    if (isAddressEqual(address, tx.from)) {
+      const signature = await wallet.data.sendTransaction(tx);
+      await web3wallet.respondSessionRequest({
+        topic,
+        response: formatJsonRpcResult(id, signature),
+      });
+    } else {
+      const fooCall = encodeFunctionData({
+        abi: parseAbi(["function fooBar(uint256 amount, string message)"]),
+        functionName: "fooBar",
+        args: [hexToBigInt("0x3"), "yes it worked"],
+      });
+
+      const data = encodeFunctionData({
+        abi: callRemoteAbi,
+        functionName: "callRemote",
+        args: [
+          destinationChainId,
+          // tx.to,
+          // tx.value,
+          // tx.data,
+          // Temp while no things support WC2
+          [
+            {
+              to: utils.addressToBytes32(
+                "0xBC3cFeca7Df5A45d61BC60E7898E63670e1654aE"
+              ),
+              value: "0x0",
+              data: fooCall,
+            },
+          ],
+        ],
+      });
+
+      const wrappedTx = {
+        ...tx,
+        value: "0x0",
+        from: address,
+        to: hyperlaneContractAddresses[chainIdToMetadata[chainId].name]
+          .interchainAccountRouter,
+        data,
+        nonce: undefined, // let wallet populate for now
+      };
+
+      const signature = await wallet.data.sendTransaction(wrappedTx);
+      await web3wallet.respondSessionRequest({
+        topic,
+        response: formatJsonRpcResult(id, signature),
+      });
+    }
+
+    removeRequest(request);
   };
 
   const rejectRequest = async (request: PendingRequestTypes.Struct) => {
