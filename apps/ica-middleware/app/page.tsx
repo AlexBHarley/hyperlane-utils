@@ -11,7 +11,7 @@ import { SessionProposal } from "../components/proposal";
 import { useIcaAddresses } from "../hooks/use-ica-addresses";
 import { useInitialiseWalletConnect } from "../hooks/use-initialise-walletconnect";
 import { useWalletConnect } from "../hooks/use-walletconnect";
-import { useWalletConnectStore } from "./state/walletconnect";
+import { useWalletConnectStore } from "../state/walletconnect";
 import { Request } from "../components/request";
 
 export default function Page() {

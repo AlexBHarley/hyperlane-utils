@@ -3,7 +3,7 @@ import { SignClientTypes } from "@walletconnect/types";
 import { IWeb3Wallet, Web3Wallet } from "@walletconnect/web3wallet";
 import { useCallback, useEffect } from "react";
 
-import { useWalletConnectStore } from "../app/state/walletconnect";
+import { useWalletConnectStore } from "../state/walletconnect";
 
 export let web3wallet: IWeb3Wallet | undefined;
 

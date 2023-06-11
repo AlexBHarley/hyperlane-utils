@@ -19,7 +19,7 @@ import {
 } from "viem";
 import { useAccount, useChainId, useNetwork, useWalletClient } from "wagmi";
 
-import { useWalletConnectStore } from "../app/state/walletconnect";
+import { useWalletConnectStore } from "../state/walletconnect";
 import { EIP155_SIGNING_METHODS } from "../constants";
 import { useIcaAddresses } from "./use-ica-addresses";
 import { web3wallet } from "./use-initialise-walletconnect";
