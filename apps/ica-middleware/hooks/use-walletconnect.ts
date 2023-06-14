@@ -12,7 +12,6 @@ import {
 import { buildApprovedNamespaces, getSdkError } from "@walletconnect/utils";
 import { ChainId } from "caip";
 import {
-  TransactionReceipt,
   createPublicClient,
   decodeEventLog,
   encodeFunctionData,
@@ -156,14 +155,12 @@ export function useWalletConnect() {
           destinationClient.getBytecode({ address: ica.address }),
         ]);
 
-        console.log({ gasEstimate, icaBytecode });
         // https://docs.hyperlane.xyz/docs/apis-and-sdks/accounts#overhead-gas-amounts
         if (icaBytecode) {
           gasEstimate = gasEstimate + BigInt(30_000);
         } else {
           gasEstimate = gasEstimate + BigInt(150_000);
         }
-        console.log(gasEstimate, icaBytecode);
 
         const calls = [
           // {
@@ -201,58 +198,56 @@ export function useWalletConnect() {
           }),
         };
 
-        const signature = await wallet.data.sendTransaction(wrappedTx);
-        console.log("Transaction hash", signature);
-        await web3wallet.respondSessionRequest({
-          topic,
-          response: formatJsonRpcResult(id, signature),
+        const originTransactionHash = await wallet.data.sendTransaction(
+          wrappedTx
+        );
+
+        // automatically handles replaced transactions 🕺, important
+        // to use receipt.transactionHash and not originTransactionHash
+        // as they could be different
+        const receipt = await client.waitForTransactionReceipt({
+          hash: originTransactionHash,
         });
 
-        let timeout = 2000;
-        while (true) {
-          try {
-            const receipt: TransactionReceipt =
-              await client.getTransactionReceipt({
-                hash: signature,
-              });
-            if (receipt && receipt.status === "success") {
-              const {
-                // @ts-expect-error
-                args: { messageId },
-              } = decodeEventLog({
-                abi: interchainAccountRouterAbi,
-                data: receipt.logs[2].data,
-                topics: receipt.logs[2].topics,
-              });
+        if (receipt.status === "success") {
+          const {
+            // @ts-expect-error
+            args: { messageId },
+          } = decodeEventLog({
+            abi: interchainAccountRouterAbi,
+            data: receipt.logs[2].data,
+            topics: receipt.logs[2].topics,
+          });
 
-              const gas = await client.readContract({
-                address:
-                  hyperlaneContractAddresses[chainIdToMetadata[chainId].name]
-                    .interchainGasPaymaster,
-                abi: gasPaymasterAbi,
-                functionName: "quoteGasPayment",
-                args: [destinationChainId, gasEstimate],
-              });
+          const gas = await client.readContract({
+            address:
+              hyperlaneContractAddresses[chainIdToMetadata[chainId].name]
+                .interchainGasPaymaster,
+            abi: gasPaymasterAbi,
+            functionName: "quoteGasPayment",
+            args: [destinationChainId, gasEstimate],
+          });
 
-              await wallet.data.writeContract({
-                address:
-                  hyperlaneContractAddresses[chainIdToMetadata[chainId].name]
-                    .interchainGasPaymaster,
-                abi: gasPaymasterAbi,
-                functionName: "payForGas",
-                args: [messageId, destinationChainId, gasEstimate, address],
-                // @ts-expect-error
-                value: gas,
-              });
-            }
+          await wallet.data.writeContract({
+            address:
+              hyperlaneContractAddresses[chainIdToMetadata[chainId].name]
+                .interchainGasPaymaster,
+            abi: gasPaymasterAbi,
+            functionName: "payForGas",
+            args: [messageId, destinationChainId, gasEstimate, address],
+            // @ts-expect-error
+            value: gas,
+          });
 
-            removeRequest(request);
-            return;
-          } catch (e) {
-            console.log(e);
-          }
-          await new Promise((resolve) => setTimeout(resolve, timeout));
+          await web3wallet.respondSessionRequest({
+            topic,
+            response: formatJsonRpcResult(id, receipt.transactionHash),
+          });
+        } else {
+          throw new Error(receipt.status);
         }
+
+        removeRequest(request);
       }
     } catch (e) {
       console.error(e);
