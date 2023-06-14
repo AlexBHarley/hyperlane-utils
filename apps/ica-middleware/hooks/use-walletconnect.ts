@@ -53,6 +53,10 @@ export function useWalletConnect() {
   } = useWalletConnectStore();
 
   const approveProposal = async (proposal: ProposalTypes.Struct) => {
+    if (!web3wallet) {
+      return;
+    }
+
     const namespaces = buildApprovedNamespaces({
       proposal,
       supportedNamespaces: {
@@ -79,6 +83,10 @@ export function useWalletConnect() {
   };
 
   const rejectProposal = async (proposal: ProposalTypes.Struct) => {
+    if (!web3wallet) {
+      return;
+    }
+
     await web3wallet.rejectSession({
       id: proposal.id,
       reason: getSdkError("USER_REJECTED"),
@@ -87,6 +95,10 @@ export function useWalletConnect() {
   };
 
   const disconnectSession = async (session: SessionTypes.Struct) => {
+    if (!web3wallet) {
+      return;
+    }
+
     await web3wallet.disconnectSession({
       topic: session.topic,
       reason: getSdkError("USER_DISCONNECTED"),
@@ -95,6 +107,10 @@ export function useWalletConnect() {
   };
 
   const approveRequest = async (request: PendingRequestTypes.Struct) => {
+    if (!wallet.data || !web3wallet) {
+      return;
+    }
+
     if (
       request.params.request.method !==
       EIP155_SIGNING_METHODS.ETH_SEND_TRANSACTION
@@ -113,7 +129,7 @@ export function useWalletConnect() {
 
       const tx = request.params.request.params[0];
 
-      if (isAddressEqual(address, tx.from)) {
+      if (isAddressEqual(wallet.data.account.address, tx.from)) {
         const signature = await wallet.data.sendTransaction(tx);
         await web3wallet.respondSessionRequest({
           topic,
@@ -163,10 +179,8 @@ export function useWalletConnect() {
             value: "0x0",
             data: encodeFunctionData({
               abi: parseAbi([
-                // @ts-expect-error
                 "function fooBar(uint256 amount, string message)",
               ]),
-              // @ts-expect-error
               functionName: "fooBar",
               args: [hexToBigInt("0x3"), "yes it worked"],
             }),
@@ -208,7 +222,6 @@ export function useWalletConnect() {
               } = decodeEventLog({
                 abi: interchainAccountRouterAbi,
                 data: receipt.logs[2].data,
-                // @ts-expect-error
                 topics: receipt.logs[2].topics,
               });
 
@@ -248,6 +261,10 @@ export function useWalletConnect() {
   };
 
   const rejectRequest = async (request: PendingRequestTypes.Struct) => {
+    if (!web3wallet) {
+      return;
+    }
+
     const { id, topic } = request;
     setRequestStatus(id, "rejecting");
     await web3wallet.respondSessionRequest({
@@ -257,7 +274,12 @@ export function useWalletConnect() {
     removeRequest(request);
   };
 
-  const pair = (uri: string) => web3wallet.core.pairing.pair({ uri });
+  const pair = (uri: string) => {
+    if (!web3wallet) {
+      return;
+    }
+    return web3wallet.core.pairing.pair({ uri });
+  };
 
   return {
     initialised,

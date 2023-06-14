@@ -127,4 +127,4 @@ export const gasPaymasterAbi = [
     stateMutability: "nonpayable",
     type: "function",
   },
-];
+] as const;

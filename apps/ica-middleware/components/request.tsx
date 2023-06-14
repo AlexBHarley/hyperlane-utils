@@ -29,7 +29,7 @@ export const Request: FC<{
   );
   const chainMetadata = chainIdToMetadata[requestChainid];
 
-  const session = web3wallet.engine.signClient.session.get(request.topic);
+  const session = web3wallet?.engine.signClient.session.get(request.topic);
 
   const status = requestStatuses.find((x) => x.id === request.id)?.status;
 
@@ -71,10 +71,10 @@ export const Request: FC<{
           <dt className="text-sm font-medium leading-6 text-gray-900">App</dt>
           <div className="flex items-center col-span-2">
             <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-              {session.peer.metadata.name}
+              {session?.peer.metadata.name}
             </dd>
             <img
-              src={session.peer.metadata.icons[0]}
+              src={session?.peer.metadata.icons[0]}
               className="h-6 w-6 rounded ml-2"
             />
           </div>

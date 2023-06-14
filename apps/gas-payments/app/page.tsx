@@ -10,6 +10,7 @@ import {
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { Fragment, useState } from "react";
 import {
+  Address,
   useAccount,
   useChainId,
   useContractRead,
@@ -27,21 +28,21 @@ export default function Page() {
   const [gas, setGas] = useState("1000000");
   const [destination, setDestination] = useState(chainMetadata.goerli);
 
-  const paymasterAddress =
+  const paymasterAddress: Address =
     hyperlaneContractAddresses[chainIdToMetadata[chainId].name]
       .interchainGasPaymaster;
   const quoteGas = useContractRead({
     address: paymasterAddress,
     abi: gasPaymasterAbi,
     functionName: "quoteGasPayment",
-    args: [destination.id, gas],
+    args: [destination.chainId, BigInt(gas)],
   });
   const payGas = useContractWrite({
     address: paymasterAddress,
     abi: gasPaymasterAbi,
     functionName: "payForGas",
-    args: [messageId, destination.id, gas, address],
-    value: quoteGas.data,
+    args: [messageId as Address, destination.chainId, BigInt(gas), address!],
+    value: quoteGas.data!,
   });
 
   const onClick = () => {
@@ -97,6 +98,7 @@ export default function Page() {
                         <Listbox.Button className="relative w-full cursor-default rounded-md bg-white py-1.5 pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm sm:leading-6">
                           <span className="flex items-center">
                             <img
+                              // @ts-expect-error
                               src={destination.avatar}
                               alt=""
                               className="h-5 w-5 flex-shrink-0 rounded-full"
@@ -123,7 +125,7 @@ export default function Page() {
                           <Listbox.Options className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                             {Object.values(chainMetadata).map((chain) => (
                               <Listbox.Option
-                                key={chain.id}
+                                key={chain.chainId}
                                 className={({ active }) =>
                                   classNames(
                                     active
@@ -138,6 +140,7 @@ export default function Page() {
                                   <>
                                     <div className="flex items-center">
                                       <img
+                                        // @ts-expect-error
                                         src={chain.avatar}
                                         alt=""
                                         className="h-5 w-5 flex-shrink-0 rounded-full"

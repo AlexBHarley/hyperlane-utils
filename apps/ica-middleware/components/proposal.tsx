@@ -36,7 +36,7 @@ export const SessionProposal: FC<{
               Chains
             </dt>
             <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-              {proposal.requiredNamespaces.eip155.chains.map((x) => (
+              {(proposal.requiredNamespaces.eip155.chains ?? []).map((x) => (
                 <div key={x} className="text-sm">
                   {
                     chainIdToMetadata[parseInt(ChainId.parse(x).reference)]

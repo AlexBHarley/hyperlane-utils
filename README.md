@@ -1,4 +1,4 @@
-## Hyperlane utilities
+## Hyperlane utils
 
 Small utility apps that help do common or useful [Hyperlane](https://hyperlane.xyz) things.
 

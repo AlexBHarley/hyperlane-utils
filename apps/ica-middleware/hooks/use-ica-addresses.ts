@@ -46,7 +46,7 @@ export function useIcaAddresses() {
         functionName: "getLocalInterchainAccount",
         args: [
           localChainId,
-          addressToBytes32(account.address),
+          account.address ? addressToBytes32(account.address) : "",
           addressToBytes32(
             hyperlaneContractAddresses[localChainMetadata.name]
               .interchainAccountRouter
@@ -68,7 +68,8 @@ export function useIcaAddresses() {
         }
         return null;
       })
-      .filter(({ chainMetadata }) => chainMetadata.chainId !== localChainId)
-      .filter(isPresent) ?? []
+      .filter(isPresent)
+      .filter(({ chainMetadata }) => chainMetadata.chainId !== localChainId) ??
+    []
   );
 }

@@ -16,7 +16,7 @@ export const AccountRow: FC<{
       </td>
       <td className="whitespace-nowrap px-3 py-4 text-sm text-blue-500">
         <a
-          href={`${chainMetadata.blockExplorers[0].url}/address/${address}`}
+          href={`${chainMetadata.blockExplorers![0].url}/address/${address}`}
           target="_blank"
         >
           {address}
