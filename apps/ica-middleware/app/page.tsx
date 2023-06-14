@@ -32,14 +32,14 @@ export default function Page() {
   };
 
   return (
-    <div className="max-w-screen-xl mx-auto  px-4">
+    <div className="max-w-screen-xl mx-auto px-4 my-10">
       {!address ? (
-        <div className="flex items-center justify-center mt-10">
+        <div className="flex items-center justify-center">
           <ConnectButton />
         </div>
       ) : (
         <div className="space-y-6">
-          <div className="flex items-center justify-center mt-10">
+          <div className="flex items-center justify-center">
             <ConnectButton />
           </div>
           <div>

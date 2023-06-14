@@ -13,6 +13,7 @@ type WalletConnectStore = {
   proposals: ProposalTypes.Struct[];
   sessions: SessionTypes.Struct[];
   requests: PendingRequestTypes.Struct[];
+  requestStatuses: { id: number; status: "approving" | "rejecting" }[];
 
   addProposal: (proposal: ProposalTypes.Struct) => void;
   removeProposal: (proposal: ProposalTypes.Struct) => void;
@@ -24,6 +25,7 @@ type WalletConnectStore = {
 
   addRequest: (request: PendingRequestTypes.Struct) => void;
   removeRequest: (request: PendingRequestTypes.Struct) => void;
+  setRequestStatus: (id: number, status: "approving" | "rejecting") => void;
 };
 
 const walletConnectStore = create<WalletConnectStore>()((set) => ({
@@ -32,6 +34,7 @@ const walletConnectStore = create<WalletConnectStore>()((set) => ({
   proposals: [],
   requests: [],
   sessions: [],
+  requestStatuses: [],
 
   addProposal: (proposal) =>
     set((state) => ({ proposals: [...state.proposals, proposal] })),
@@ -52,6 +55,12 @@ const walletConnectStore = create<WalletConnectStore>()((set) => ({
   removeRequest: (request) =>
     set((state) => ({
       requests: state.requests.filter((r) => r.id !== request.id),
+      requestStatuses: state.requestStatuses.filter((r) => r.id !== request.id),
+    })),
+
+  setRequestStatus: (id, status) =>
+    set((state) => ({
+      requestStatuses: [...state.requestStatuses, { id, status }],
     })),
 }));
 

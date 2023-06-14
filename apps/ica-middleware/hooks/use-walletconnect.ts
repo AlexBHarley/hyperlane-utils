@@ -12,61 +12,28 @@ import {
 import { buildApprovedNamespaces, getSdkError } from "@walletconnect/utils";
 import { ChainId } from "caip";
 import {
+  TransactionReceipt,
+  createPublicClient,
+  decodeEventLog,
   encodeFunctionData,
   hexToBigInt,
+  http,
   isAddressEqual,
   parseAbi,
 } from "viem";
-import { useAccount, useChainId, useNetwork, useWalletClient } from "wagmi";
+import {
+  useAccount,
+  useChainId,
+  useNetwork,
+  usePublicClient,
+  useWalletClient,
+} from "wagmi";
 
-import { useWalletConnectStore } from "../state/walletconnect";
+import { gasPaymasterAbi, interchainAccountRouterAbi } from "../abis";
 import { EIP155_SIGNING_METHODS } from "../constants";
+import { useWalletConnectStore } from "../state/walletconnect";
 import { useIcaAddresses } from "./use-ica-addresses";
 import { web3wallet } from "./use-initialise-walletconnect";
-
-const callRemoteAbi = [
-  {
-    inputs: [
-      {
-        internalType: "uint32",
-        name: "_destination",
-        type: "uint32",
-      },
-      {
-        components: [
-          {
-            internalType: "bytes32",
-            name: "to",
-            type: "bytes32",
-          },
-          {
-            internalType: "uint256",
-            name: "value",
-            type: "uint256",
-          },
-          {
-            internalType: "bytes",
-            name: "data",
-            type: "bytes",
-          },
-        ],
-        internalType: "struct CallLib.Call[]",
-        name: "_calls",
-        type: "tuple[]",
-      },
-    ],
-    name: "callRemote",
-    outputs: [
-      {
-        internalType: "bytes32",
-        name: "",
-        type: "bytes32",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-];
 
 export function useWalletConnect() {
   const { chains: wagmiChains } = useNetwork();
@@ -74,6 +41,7 @@ export function useWalletConnect() {
   const chainId = useChainId();
   const { address } = useAccount();
   const wallet = useWalletClient();
+  const client = usePublicClient({ chainId });
 
   const {
     initialised,
@@ -81,6 +49,7 @@ export function useWalletConnect() {
     addSession,
     removeSession,
     removeRequest,
+    setRequestStatus,
   } = useWalletConnectStore();
 
   const approveProposal = async (proposal: ProposalTypes.Struct) => {
@@ -133,72 +102,154 @@ export function useWalletConnect() {
       return rejectRequest(request);
     }
 
-    const destinationChainId = parseInt(
-      ChainId.parse(request.params.chainId).reference
-    );
+    try {
+      setRequestStatus(request.id, "approving");
 
-    const { id, topic } = request;
+      const destinationChainId = parseInt(
+        ChainId.parse(request.params.chainId).reference
+      );
 
-    const tx = request.params.request.params[0];
+      const { id, topic } = request;
 
-    if (isAddressEqual(address, tx.from)) {
-      const signature = await wallet.data.sendTransaction(tx);
-      await web3wallet.respondSessionRequest({
-        topic,
-        response: formatJsonRpcResult(id, signature),
-      });
-    } else {
-      const fooCall = encodeFunctionData({
-        abi: parseAbi(["function fooBar(uint256 amount, string message)"]),
-        functionName: "fooBar",
-        args: [hexToBigInt("0x3"), "yes it worked"],
-      });
+      const tx = request.params.request.params[0];
 
-      const data = encodeFunctionData({
-        abi: callRemoteAbi,
-        functionName: "callRemote",
-        args: [
-          destinationChainId,
-          [
-            // {
-            //   to: utils.addressToBytes32(tx.to),
-            //   value: "0x0",
-            //   data: "0x1",
-            // },
-            // Temp override while no things support WC2
-            {
-              to: utils.addressToBytes32(
-                "0xBC3cFeca7Df5A45d61BC60E7898E63670e1654aE"
-              ),
-              value: "0x0",
-              data: fooCall,
-            },
-          ],
-        ],
-      });
+      if (isAddressEqual(address, tx.from)) {
+        const signature = await wallet.data.sendTransaction(tx);
+        await web3wallet.respondSessionRequest({
+          topic,
+          response: formatJsonRpcResult(id, signature),
+        });
+      } else {
+        const destinationClient = createPublicClient({
+          transport: http(),
+          chain: wagmiChains.find((x) => x.id === destinationChainId),
+        });
 
-      const wrappedTx = {
-        ...tx,
-        value: "0x0",
-        from: address,
-        to: hyperlaneContractAddresses[chainIdToMetadata[chainId].name]
-          .interchainAccountRouter,
-        data,
-        nonce: undefined, // let wallet populate for now
-      };
+        const ica = icas.find(
+          (x) => x.chainMetadata.chainId === destinationChainId
+        );
+        if (!ica) {
+          throw new Error("Missing ICA for this chain");
+        }
 
-      const signature = await wallet.data.sendTransaction(wrappedTx);
-      await web3wallet.respondSessionRequest({
-        topic,
-        response: formatJsonRpcResult(id, signature),
-      });
+        let [gasEstimate, icaBytecode] = await Promise.all([
+          destinationClient.estimateGas({
+            account: tx.from,
+            ...tx,
+          }),
+          destinationClient.getBytecode({ address: ica.address }),
+        ]);
+
+        console.log({ gasEstimate, icaBytecode });
+        // https://docs.hyperlane.xyz/docs/apis-and-sdks/accounts#overhead-gas-amounts
+        if (icaBytecode) {
+          gasEstimate = gasEstimate + BigInt(30_000);
+        } else {
+          gasEstimate = gasEstimate + BigInt(150_000);
+        }
+        console.log(gasEstimate, icaBytecode);
+
+        const calls = [
+          // {
+          //   to: tx.to,
+          //   value: "0x0",
+          //   data: tx.data,
+          // },
+          // Temp override while no things support WC2
+          {
+            to: utils.addressToBytes32(
+              "0xBC3cFeca7Df5A45d61BC60E7898E63670e1654aE"
+            ),
+            value: "0x0",
+            data: encodeFunctionData({
+              abi: parseAbi([
+                // @ts-expect-error
+                "function fooBar(uint256 amount, string message)",
+              ]),
+              // @ts-expect-error
+              functionName: "fooBar",
+              args: [hexToBigInt("0x3"), "yes it worked"],
+            }),
+          },
+        ];
+
+        let wrappedTx = {
+          ...tx,
+          value: "0x0",
+          from: address,
+          nonce: undefined,
+          to: hyperlaneContractAddresses[chainIdToMetadata[chainId].name]
+            .interchainAccountRouter,
+          data: encodeFunctionData({
+            abi: interchainAccountRouterAbi,
+            functionName: "callRemote",
+            args: [destinationChainId, calls],
+          }),
+        };
+
+        const signature = await wallet.data.sendTransaction(wrappedTx);
+        console.log("Transaction hash", signature);
+        await web3wallet.respondSessionRequest({
+          topic,
+          response: formatJsonRpcResult(id, signature),
+        });
+
+        let timeout = 2000;
+        while (true) {
+          try {
+            const receipt: TransactionReceipt =
+              await client.getTransactionReceipt({
+                hash: signature,
+              });
+            if (receipt && receipt.status === "success") {
+              const {
+                // @ts-expect-error
+                args: { messageId },
+              } = decodeEventLog({
+                abi: interchainAccountRouterAbi,
+                data: receipt.logs[2].data,
+                // @ts-expect-error
+                topics: receipt.logs[2].topics,
+              });
+
+              const gas = await client.readContract({
+                address:
+                  hyperlaneContractAddresses[chainIdToMetadata[chainId].name]
+                    .interchainGasPaymaster,
+                abi: gasPaymasterAbi,
+                functionName: "quoteGasPayment",
+                args: [destinationChainId, gasEstimate],
+              });
+
+              await wallet.data.writeContract({
+                address:
+                  hyperlaneContractAddresses[chainIdToMetadata[chainId].name]
+                    .interchainGasPaymaster,
+                abi: gasPaymasterAbi,
+                functionName: "payForGas",
+                args: [messageId, destinationChainId, gasEstimate, address],
+                // @ts-expect-error
+                value: gas,
+              });
+            }
+
+            removeRequest(request);
+            return;
+          } catch (e) {
+            console.log(e);
+          }
+          await new Promise((resolve) => setTimeout(resolve, timeout));
+        }
+      }
+    } catch (e) {
+      console.error(e);
+      rejectRequest(request);
     }
-
-    removeRequest(request);
   };
 
   const rejectRequest = async (request: PendingRequestTypes.Struct) => {
     const { id, topic } = request;
+    setRequestStatus(id, "rejecting");
     await web3wallet.respondSessionRequest({
       topic,
       response: formatJsonRpcError(id, getSdkError("USER_REJECTED").message),

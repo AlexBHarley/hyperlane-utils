@@ -7,6 +7,9 @@ import { Address, useAccount, useChainId } from "wagmi";
 import { useIcaAddresses } from "../hooks/use-ica-addresses";
 import { web3wallet } from "../hooks/use-initialise-walletconnect";
 import { useWalletConnect } from "../hooks/use-walletconnect";
+import { useWalletConnectStore } from "../state/walletconnect";
+import { classNames } from "../utils/classnames";
+import { Spinner } from "./spinner";
 
 function formatAddress(address: Address) {
   return `${address.slice(0, 8)}...${address.slice(address.length - 8)}`;
@@ -16,6 +19,7 @@ export const Request: FC<{
   request: PendingRequestTypes.Struct;
 }> = ({ request }) => {
   const { approveRequest, rejectRequest } = useWalletConnect();
+  const { requestStatuses } = useWalletConnectStore();
   const icas = useIcaAddresses();
   const { address } = useAccount();
   const chainId = useChainId();
@@ -26,6 +30,8 @@ export const Request: FC<{
   const chainMetadata = chainIdToMetadata[requestChainid];
 
   const session = web3wallet.engine.signClient.session.get(request.topic);
+
+  const status = requestStatuses.find((x) => x.id === request.id)?.status;
 
   return (
     <div className="flex flex-col border rounded p-4 space-y-4">
@@ -78,17 +84,33 @@ export const Request: FC<{
       <div className="flex space-x-2">
         <button
           type="button"
-          onClick={() => approveRequest(request)}
-          className="rounded bg-indigo-600 px-2 py-1 text-xs font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 ml-auto"
+          onClick={() => {
+            if (status) {
+              return;
+            }
+            approveRequest(request);
+          }}
+          className={classNames(
+            "rounded bg-indigo-600 px-2 py-1 text-xs font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 ml-auto",
+            status && "cursor-default bg-indigo-300 hover:bg-indigo-300"
+          )}
         >
-          Approve
+          {status === "approving" ? <Spinner /> : "Approve"}
         </button>
         <button
           type="button"
-          className="rounded bg-white px-2 py-1 text-xs font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-          onClick={() => rejectRequest(request)}
+          className={classNames(
+            "rounded bg-white px-2 py-1 text-xs font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50",
+            status && "cursor-default bg-white hover:bg-white"
+          )}
+          onClick={() => {
+            if (status) {
+              return;
+            }
+            rejectRequest(request);
+          }}
         >
-          Deny
+          {status === "rejecting" ? <Spinner /> : "Deny"}
         </button>
       </div>
     </div>
