@@ -43,7 +43,6 @@ export function useWalletConnect() {
   const client = usePublicClient({ chainId });
 
   const {
-    initialised,
     removeProposal,
     addSession,
     removeSession,
