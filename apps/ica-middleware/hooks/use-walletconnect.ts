@@ -77,6 +77,7 @@ export function useWalletConnect() {
       id: proposal.id,
       namespaces,
     });
+
     addSession(session);
     removeProposal(proposal);
   };
@@ -277,7 +278,6 @@ export function useWalletConnect() {
   };
 
   return {
-    initialised,
     pair,
     approveProposal,
     rejectProposal,

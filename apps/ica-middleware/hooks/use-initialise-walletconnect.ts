@@ -20,9 +20,9 @@ export function useInitialiseWalletConnect() {
     web3wallet = await Web3Wallet.init({
       core,
       metadata: {
-        name: "Demo app",
-        description: "Demo Client as Wallet/Peer",
-        url: "www.walletconnect.com",
+        name: "Hyperlane ICA demo",
+        description: "Hyperlane ICA demo",
+        url: "https://hyperlane-ica-demo-web.vercel.app",
         icons: [],
       },
     });
