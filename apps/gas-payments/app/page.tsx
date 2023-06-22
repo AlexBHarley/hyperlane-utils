@@ -17,7 +17,7 @@ import {
   useContractWrite,
 } from "wagmi";
 
-import { gasPaymasterAbi } from "../abis/ica-gas-paymaster";
+import GasPaymasterAbi from "../abis/ica-gas-paymaster.json";
 import { classNames } from "../utils/class-names";
 
 export default function Page() {
@@ -31,21 +31,28 @@ export default function Page() {
   const paymasterAddress: Address =
     hyperlaneContractAddresses[chainIdToMetadata[chainId].name]
       .interchainGasPaymaster;
+
   const quoteGas = useContractRead({
     address: paymasterAddress,
-    abi: gasPaymasterAbi,
+    abi: GasPaymasterAbi,
     functionName: "quoteGasPayment",
     args: [destination.chainId, BigInt(gas)],
   });
+
   const payGas = useContractWrite({
     address: paymasterAddress,
-    abi: gasPaymasterAbi,
+    abi: GasPaymasterAbi,
     functionName: "payForGas",
     args: [messageId as Address, destination.chainId, BigInt(gas), address!],
-    value: quoteGas.data!,
+    value: quoteGas.data ? BigInt(quoteGas.data as string) : BigInt("0"),
   });
 
+  const enabled = !!messageId && !!gas && !!address && !payGas.isLoading;
+
   const onClick = () => {
+    if (!enabled) {
+      return;
+    }
     payGas.write();
   };
 
@@ -63,7 +70,7 @@ export default function Page() {
             <ConnectButton />
           </div>
 
-          <form className="bg-white shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl md:col-span-2">
+          <div className="bg-white shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl md:col-span-2">
             <div className="px-4 py-6 sm:p-8">
               <div className="space-y-4">
                 <div className="">
@@ -92,7 +99,7 @@ export default function Page() {
                   {({ open }) => (
                     <>
                       <Listbox.Label className="block text-sm font-medium leading-6 text-gray-900">
-                        Assigned to
+                        Destination
                       </Listbox.Label>
                       <div className="relative mt-2">
                         <Listbox.Button className="relative w-full cursor-default rounded-md bg-white py-1.5 pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm sm:leading-6">
@@ -207,19 +214,18 @@ export default function Page() {
             </div>
             <div className="flex items-center justify-end gap-x-6 border-t border-gray-900/10 px-4 py-4 sm:px-8">
               <button
-                type="button"
-                className="text-sm font-semibold leading-6 text-gray-900"
+                onClick={onClick}
+                className={classNames(
+                  `rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600`,
+                  enabled && "bg-indigo-600 hover:bg-indigo-500",
+                  !enabled && "bg-indigo-500"
+                )}
+                disabled={!enabled}
               >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-              >
-                Save
+                Pay
               </button>
             </div>
-          </form>
+          </div>
         </div>
       </div>
     </div>
