@@ -24,10 +24,10 @@ export const Request: FC<{
   const { address } = useAccount();
   const chainId = useChainId();
 
-  const requestChainid = parseInt(
+  const requestChainId = parseInt(
     ChainId.parse(request.params.chainId).reference
   );
-  const chainMetadata = chainIdToMetadata[requestChainid];
+  const chainMetadata = chainIdToMetadata[requestChainId];
 
   const session = web3wallet?.engine.signClient.session.get(request.topic);
 
@@ -62,8 +62,8 @@ export const Request: FC<{
               [
                 { address, chainMetadata: chainIdToMetadata[chainId] },
                 ...(icas ?? []),
-              ].find((x) => x.chainMetadata.chainId === chainId)?.address ??
-                "0x"
+              ].find((x) => x.chainMetadata.chainId === requestChainId)
+                ?.address ?? "0x"
             )}
           </dd>
         </div>
