@@ -162,6 +162,9 @@ export function useWalletConnect() {
           gasEstimate = gasEstimate + BigInt(150_000);
         }
 
+        // safety value, usually not needed
+        gasEstimate = gasEstimate + BigInt(10_000);
+
         const calls = [
           // {
           //   to: tx.to,
