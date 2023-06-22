@@ -140,27 +140,33 @@ export default function Page() {
                   <div className="text-xl text-gray-700 font-medium mb-2">
                     Active Sessions
                   </div>
-                  {sessions.map((s) => (
-                    <Session key={s.topic} session={s} />
-                  ))}
+                  <div className="space-y-2">
+                    {sessions.map((s) => (
+                      <Session key={s.topic} session={s} />
+                    ))}
+                  </div>
                 </div>
 
                 <div>
                   <div className="text-xl text-gray-700 font-medium mb-2">
                     Session Proposals
                   </div>
-                  {proposals.map((x) => (
-                    <SessionProposal key={x.id} proposal={x} />
-                  ))}
+                  <div className="space-y-2">
+                    {proposals.map((x) => (
+                      <SessionProposal key={x.id} proposal={x} />
+                    ))}
+                  </div>
                 </div>
 
                 <div>
                   <div className="text-xl text-gray-700 font-medium mb-2">
                     Action Requests
                   </div>
-                  {requests.map((x) => (
-                    <Request key={x.id} request={x} />
-                  ))}
+                  <div className="space-y-2">
+                    {requests.map((x) => (
+                      <Request key={x.id} request={x} />
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
