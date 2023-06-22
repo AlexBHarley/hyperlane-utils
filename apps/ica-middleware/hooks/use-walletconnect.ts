@@ -166,11 +166,11 @@ export function useWalletConnect() {
         gasEstimate = gasEstimate + BigInt(10_000);
 
         const calls = [
-          // {
-          //   to: tx.to,
-          //   value: "0x0",
-          //   data: tx.data,
-          // },
+          {
+            to: utils.addressToBytes32(tx.to),
+            value: "0x0",
+            data: tx.data,
+          },
           // Temp override while no things support WC2
           {
             to: utils.addressToBytes32(
