@@ -15,10 +15,8 @@ import {
   createPublicClient,
   decodeEventLog,
   encodeFunctionData,
-  hexToBigInt,
   http,
   isAddressEqual,
-  parseAbi,
 } from "viem";
 import {
   useAccount,
@@ -168,22 +166,8 @@ export function useWalletConnect() {
         const calls = [
           {
             to: utils.addressToBytes32(tx.to),
-            value: "0x0",
             data: tx.data,
-          },
-          // Temp override while no things support WC2
-          {
-            to: utils.addressToBytes32(
-              "0xBC3cFeca7Df5A45d61BC60E7898E63670e1654aE"
-            ),
             value: "0x0",
-            data: encodeFunctionData({
-              abi: parseAbi([
-                "function fooBar(uint256 amount, string message)",
-              ]),
-              functionName: "fooBar",
-              args: [hexToBigInt("0x3"), "yes it worked"],
-            }),
           },
         ];
 
@@ -230,6 +214,8 @@ export function useWalletConnect() {
             functionName: "quoteGasPayment",
             args: [destinationChainId, gasEstimate],
           });
+
+          console.log({ messageId });
 
           await wallet.data.writeContract({
             address:
