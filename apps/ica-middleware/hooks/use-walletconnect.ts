@@ -209,7 +209,7 @@ export function useWalletConnect() {
           const gas = await client.readContract({
             address:
               hyperlaneContractAddresses[chainIdToMetadata[chainId].name]
-                .interchainGasPaymaster,
+                .defaultIsmInterchainGasPaymaster,
             abi: gasPaymasterAbi,
             functionName: "quoteGasPayment",
             args: [destinationChainId, gasEstimate],
@@ -220,7 +220,7 @@ export function useWalletConnect() {
           await wallet.data.writeContract({
             address:
               hyperlaneContractAddresses[chainIdToMetadata[chainId].name]
-                .interchainGasPaymaster,
+                .defaultIsmInterchainGasPaymaster,
             abi: gasPaymasterAbi,
             functionName: "payForGas",
             args: [messageId, destinationChainId, gasEstimate, address],

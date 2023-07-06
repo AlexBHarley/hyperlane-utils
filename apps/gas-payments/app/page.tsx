@@ -30,7 +30,7 @@ export default function Page() {
 
   const paymasterAddress: Address =
     hyperlaneContractAddresses[chainIdToMetadata[chainId].name]
-      .interchainGasPaymaster;
+      .defaultIsmInterchainGasPaymaster;
 
   const quoteGas = useContractRead({
     address: paymasterAddress,
