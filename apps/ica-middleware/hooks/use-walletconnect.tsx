@@ -11,6 +11,7 @@ import {
 } from "@walletconnect/types";
 import { buildApprovedNamespaces, getSdkError } from "@walletconnect/utils";
 import { ChainId } from "caip";
+import { toast } from "react-hot-toast";
 import {
   createPublicClient,
   decodeEventLog,
@@ -18,7 +19,6 @@ import {
   http,
   isAddressEqual,
 } from "viem";
-import { toast } from "react-hot-toast";
 import {
   useAccount,
   useChainId,
@@ -27,15 +27,14 @@ import {
   useWalletClient,
 } from "wagmi";
 
+import { messageId } from "@hyperlane-xyz/utils/dist/src/utils";
 import { gasPaymasterAbi, interchainAccountRouterAbi } from "../abis";
+import { ToastWithLink } from "../components/toast-link";
 import { EIP155_SIGNING_METHODS } from "../constants";
 import { useWalletConnectStore } from "../state/walletconnect";
+import { getDestinationTransactionHash } from "../utils/get-destination-transaction-hash";
 import { useIcaAddresses } from "./use-ica-addresses";
 import { web3wallet } from "./use-initialise-walletconnect";
-import { useEffect } from "react";
-import { getDestinationTransactionHash } from "../utils/get-destination-transaction-hash";
-import { ToastWithLink } from "../components/toast-link";
-import { messageId } from "@hyperlane-xyz/utils/dist/src/utils";
 
 export function useWalletConnect() {
   const { chains: wagmiChains } = useNetwork();
@@ -44,21 +43,6 @@ export function useWalletConnect() {
   const { address } = useAccount();
   const wallet = useWalletClient();
   const client = usePublicClient({ chainId });
-
-  useEffect(() => {
-    const i = setInterval(() => {
-      toast.success(<ToastWithLink message="heello" link="a" />);
-    }, 1000);
-    return () => {
-      clearInterval(i);
-    };
-  }, []);
-
-  useEffect(() => {
-    getDestinationTransactionHash(
-      "0x91263c1da99a99fa41ee906a22f2339776e512e9452440bfad4ca8380c5661c0"
-    );
-  }, []);
 
   const {
     removeProposal,
