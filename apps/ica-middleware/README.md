@@ -17,7 +17,3 @@ Some dapps (e.g. OpenSea, 1Inch) require users to sign ToS before being given ac
 #### Transaction validation
 
 If dapps enforce some kind of anti-tampering checks on transactions (e.g. making sure the data, from and to properties of a submitted transaction match what they gave to the wallet) it could lead to UX problems with these ICA's
-
-#### Origin chain signature
-
-Right now I don't have a good way to get the destination chain signature from an origin chain message. That means in the response payload to dapps, we currently pass the origin chain gas payment transaction.
