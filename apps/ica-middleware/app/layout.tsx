@@ -3,6 +3,7 @@
 import "../styles/globals.css";
 import "@rainbow-me/rainbowkit/styles.css";
 
+import { Toaster } from "react-hot-toast";
 import { getDefaultWallets, RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { configureChains, createConfig, WagmiConfig } from "wagmi";
 import {
@@ -63,6 +64,7 @@ export default function RootLayout({
         <WagmiConfig config={wagmiConfig}>
           <RainbowKitProvider chains={chains}>{children}</RainbowKitProvider>
         </WagmiConfig>
+        <Toaster />
       </body>
     </html>
   );

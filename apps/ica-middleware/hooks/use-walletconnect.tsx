@@ -18,6 +18,7 @@ import {
   http,
   isAddressEqual,
 } from "viem";
+import { toast } from "react-hot-toast";
 import {
   useAccount,
   useChainId,
@@ -31,6 +32,10 @@ import { EIP155_SIGNING_METHODS } from "../constants";
 import { useWalletConnectStore } from "../state/walletconnect";
 import { useIcaAddresses } from "./use-ica-addresses";
 import { web3wallet } from "./use-initialise-walletconnect";
+import { useEffect } from "react";
+import { getDestinationTransactionHash } from "../utils/get-destination-transaction-hash";
+import { ToastWithLink } from "../components/toast-link";
+import { messageId } from "@hyperlane-xyz/utils/dist/src/utils";
 
 export function useWalletConnect() {
   const { chains: wagmiChains } = useNetwork();
@@ -39,6 +44,21 @@ export function useWalletConnect() {
   const { address } = useAccount();
   const wallet = useWalletClient();
   const client = usePublicClient({ chainId });
+
+  useEffect(() => {
+    const i = setInterval(() => {
+      toast.success(<ToastWithLink message="heello" link="a" />);
+    }, 1000);
+    return () => {
+      clearInterval(i);
+    };
+  }, []);
+
+  useEffect(() => {
+    getDestinationTransactionHash(
+      "0x91263c1da99a99fa41ee906a22f2339776e512e9452440bfad4ca8380c5661c0"
+    );
+  }, []);
 
   const {
     removeProposal,
@@ -196,6 +216,13 @@ export function useWalletConnect() {
           hash: originTransactionHash,
         });
 
+        toast.success(
+          <ToastWithLink
+            message="Interchain message submitted"
+            link={`https://explorer.hyperlane.xyz/message/${messageId}`}
+          />
+        );
+
         if (receipt.status === "success") {
           const {
             // @ts-expect-error
@@ -217,7 +244,7 @@ export function useWalletConnect() {
 
           console.log({ messageId });
 
-          await wallet.data.writeContract({
+          const gasTransactionHash = await wallet.data.writeContract({
             address:
               hyperlaneContractAddresses[chainIdToMetadata[chainId].name]
                 .defaultIsmInterchainGasPaymaster,
@@ -227,10 +254,22 @@ export function useWalletConnect() {
             // @ts-expect-error
             value: gas,
           });
+          await client.waitForTransactionReceipt({
+            hash: gasTransactionHash,
+          });
+
+          toast.success("Interchain gas paid");
+
+          const destinationTransactionHash =
+            await getDestinationTransactionHash(messageId);
+          if (!destinationTransactionHash) {
+            throw new Error("Transaction not relayed");
+          }
+          toast.success("Message relayed");
 
           await web3wallet.respondSessionRequest({
             topic,
-            response: formatJsonRpcResult(id, receipt.transactionHash),
+            response: formatJsonRpcResult(id, destinationTransactionHash),
           });
         } else {
           throw new Error(receipt.status);
@@ -238,7 +277,8 @@ export function useWalletConnect() {
 
         removeRequest(request);
       }
-    } catch (e) {
+    } catch (e: any) {
+      toast.error(e.message);
       console.error(e);
       rejectRequest(request);
     }
