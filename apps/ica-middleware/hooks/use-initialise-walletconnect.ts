@@ -1,5 +1,7 @@
+import { chainIdToMetadata } from "@hyperlane-xyz/sdk";
 import { Core } from "@walletconnect/core";
 import { SignClientTypes } from "@walletconnect/types";
+import { getSdkError } from "@walletconnect/utils";
 import { IWeb3Wallet, Web3Wallet } from "@walletconnect/web3wallet";
 import { useCallback, useEffect } from "react";
 
@@ -41,7 +43,23 @@ export function useInitialiseWalletConnect() {
 
   const onSessionProposal = (
     proposal: SignClientTypes.EventArguments["session_proposal"]
-  ) => addProposal(proposal.params);
+  ) => {
+    const unsupportedChain =
+      proposal.params.requiredNamespaces.eip155.chains?.find((x) => {
+        const [, chainId] = x.split(":");
+        return !chainIdToMetadata[parseInt(chainId)];
+      });
+
+    if (unsupportedChain) {
+      web3wallet?.rejectSession({
+        id: proposal.id,
+        reason: getSdkError("UNSUPPORTED_CHAINS"),
+      });
+      return;
+    }
+
+    addProposal(proposal.params);
+  };
 
   const onSessionDelete = (
     session: SignClientTypes.EventArguments["session_delete"]

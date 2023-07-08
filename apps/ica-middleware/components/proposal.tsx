@@ -40,7 +40,7 @@ export const SessionProposal: FC<{
                 <div key={x} className="text-sm">
                   {
                     chainIdToMetadata[parseInt(ChainId.parse(x).reference)]
-                      .displayName
+                      ?.displayName
                   }
                 </div>
               ))}
