@@ -200,10 +200,12 @@ export function useWalletConnect() {
           hash: originTransactionHash,
         });
 
+        const hyperlaneExplorerLink = `https://explorer.hyperlane.xyz/message/${messageId}`;
+
         toast.success(
           <ToastWithLink
             message="Interchain message submitted"
-            link={`https://explorer.hyperlane.xyz/message/${messageId}`}
+            link={hyperlaneExplorerLink}
           />
         );
 
@@ -242,14 +244,25 @@ export function useWalletConnect() {
             hash: gasTransactionHash,
           });
 
-          toast.success("Interchain gas paid");
+          toast.success(
+            <ToastWithLink
+              message="Interchain gas paid"
+              link={hyperlaneExplorerLink}
+            />
+          );
 
           const destinationTransactionHash =
             await getDestinationTransactionHash(messageId);
           if (!destinationTransactionHash) {
             throw new Error("Transaction not relayed");
           }
-          toast.success("Message relayed");
+
+          toast.success(
+            <ToastWithLink
+              message="Message relayed"
+              link={hyperlaneExplorerLink}
+            />
+          );
 
           await web3wallet.respondSessionRequest({
             topic,
@@ -262,7 +275,7 @@ export function useWalletConnect() {
         removeRequest(request);
       }
     } catch (e: any) {
-      toast.error(e.message);
+      toast.error(e.shortMessage ?? e.message);
       console.error(e);
       rejectRequest(request);
     }
