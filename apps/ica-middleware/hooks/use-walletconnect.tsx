@@ -171,7 +171,7 @@ export function useWalletConnect() {
           {
             to: utils.addressToBytes32(tx.to),
             data: tx.data,
-            value: "0x0",
+            value: tx.value,
           },
         ];
 
@@ -200,6 +200,20 @@ export function useWalletConnect() {
           hash: originTransactionHash,
         });
 
+        if (receipt.status !== "success") {
+          throw new Error("Transaction not successful");
+        }
+        const {
+          // @ts-expect-error
+          args: { messageId },
+        } = decodeEventLog({
+          abi: interchainAccountRouterAbi,
+          data: receipt.logs[2].data,
+          topics: receipt.logs[2].topics,
+        });
+
+        console.log({ messageId });
+
         const hyperlaneExplorerLink = `https://explorer.hyperlane.xyz/message/${messageId}`;
 
         toast.success(
@@ -209,68 +223,53 @@ export function useWalletConnect() {
           />
         );
 
-        if (receipt.status === "success") {
-          const {
-            // @ts-expect-error
-            args: { messageId },
-          } = decodeEventLog({
-            abi: interchainAccountRouterAbi,
-            data: receipt.logs[2].data,
-            topics: receipt.logs[2].topics,
-          });
+        const gas = await client.readContract({
+          address:
+            hyperlaneContractAddresses[chainIdToMetadata[chainId].name]
+              .defaultIsmInterchainGasPaymaster,
+          abi: gasPaymasterAbi,
+          functionName: "quoteGasPayment",
+          args: [destinationChainId, gasEstimate],
+        });
 
-          const gas = await client.readContract({
-            address:
-              hyperlaneContractAddresses[chainIdToMetadata[chainId].name]
-                .defaultIsmInterchainGasPaymaster,
-            abi: gasPaymasterAbi,
-            functionName: "quoteGasPayment",
-            args: [destinationChainId, gasEstimate],
-          });
+        const gasTransactionHash = await wallet.data.writeContract({
+          address:
+            hyperlaneContractAddresses[chainIdToMetadata[chainId].name]
+              .defaultIsmInterchainGasPaymaster,
+          abi: gasPaymasterAbi,
+          functionName: "payForGas",
+          args: [messageId, destinationChainId, gasEstimate, address],
+          value: gas as bigint,
+        });
+        await client.waitForTransactionReceipt({
+          hash: gasTransactionHash,
+        });
 
-          console.log({ messageId });
+        toast.success(
+          <ToastWithLink
+            message="Interchain gas paid"
+            link={hyperlaneExplorerLink}
+          />
+        );
 
-          const gasTransactionHash = await wallet.data.writeContract({
-            address:
-              hyperlaneContractAddresses[chainIdToMetadata[chainId].name]
-                .defaultIsmInterchainGasPaymaster,
-            abi: gasPaymasterAbi,
-            functionName: "payForGas",
-            args: [messageId, destinationChainId, gasEstimate, address],
-            // @ts-expect-error
-            value: gas,
-          });
-          await client.waitForTransactionReceipt({
-            hash: gasTransactionHash,
-          });
-
-          toast.success(
-            <ToastWithLink
-              message="Interchain gas paid"
-              link={hyperlaneExplorerLink}
-            />
-          );
-
-          const destinationTransactionHash =
-            await getDestinationTransactionHash(messageId);
-          if (!destinationTransactionHash) {
-            throw new Error("Transaction not relayed");
-          }
-
-          toast.success(
-            <ToastWithLink
-              message="Message relayed"
-              link={hyperlaneExplorerLink}
-            />
-          );
-
-          await web3wallet.respondSessionRequest({
-            topic,
-            response: formatJsonRpcResult(id, destinationTransactionHash),
-          });
-        } else {
-          throw new Error(receipt.status);
+        const destinationTransactionHash = await getDestinationTransactionHash(
+          messageId
+        );
+        if (!destinationTransactionHash) {
+          throw new Error("Transaction not relayed");
         }
+
+        toast.success(
+          <ToastWithLink
+            message="Message relayed"
+            link={hyperlaneExplorerLink}
+          />
+        );
+
+        await web3wallet.respondSessionRequest({
+          topic,
+          response: formatJsonRpcResult(id, destinationTransactionHash),
+        });
 
         removeRequest(request);
       }
