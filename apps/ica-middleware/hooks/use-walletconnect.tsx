@@ -27,7 +27,6 @@ import {
   useWalletClient,
 } from "wagmi";
 
-import { messageId } from "@hyperlane-xyz/utils/dist/src/utils";
 import { gasPaymasterAbi, interchainAccountRouterAbi } from "../abis";
 import { ToastWithLink } from "../components/toast-link";
 import { EIP155_SIGNING_METHODS } from "../constants";
