@@ -174,13 +174,16 @@ export function useWalletConnect() {
           },
         ];
 
+        const contractAddresses =
+          // @ts-expect-error
+          hyperlaneContractAddresses[chainIdToMetadata[chainId].name];
+
         let wrappedTx = {
           ...tx,
           value: "0x0",
           from: address,
           nonce: undefined,
-          to: hyperlaneContractAddresses[chainIdToMetadata[chainId].name]
-            .interchainAccountRouter,
+          to: contractAddresses.interchainAccountRouter,
           data: encodeFunctionData({
             abi: interchainAccountRouterAbi,
             functionName: "callRemote",
@@ -223,18 +226,14 @@ export function useWalletConnect() {
         );
 
         const gas = await client.readContract({
-          address:
-            hyperlaneContractAddresses[chainIdToMetadata[chainId].name]
-              .defaultIsmInterchainGasPaymaster,
+          address: contractAddresses.defaultIsmInterchainGasPaymaster,
           abi: gasPaymasterAbi,
           functionName: "quoteGasPayment",
           args: [destinationChainId, gasEstimate],
         });
 
         const gasTransactionHash = await wallet.data.writeContract({
-          address:
-            hyperlaneContractAddresses[chainIdToMetadata[chainId].name]
-              .defaultIsmInterchainGasPaymaster,
+          address: contractAddresses.defaultIsmInterchainGasPaymaster,
           abi: gasPaymasterAbi,
           functionName: "payForGas",
           args: [messageId, destinationChainId, gasEstimate, address],

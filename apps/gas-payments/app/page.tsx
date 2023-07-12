@@ -29,6 +29,7 @@ export default function Page() {
   const [destination, setDestination] = useState(chainMetadata.goerli);
 
   const paymasterAddress: Address =
+    // @ts-expect-error
     hyperlaneContractAddresses[chainIdToMetadata[chainId].name]
       .defaultIsmInterchainGasPaymaster;
 

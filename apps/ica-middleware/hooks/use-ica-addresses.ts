@@ -27,6 +27,7 @@ export function useIcaAddresses() {
       return {
         chainId: remoteChainMetadata.chainId,
         address:
+          // @ts-expect-error
           hyperlaneContractAddresses[remoteChainMetadata.name]
             .interchainAccountRouter,
         abi: [
@@ -48,6 +49,7 @@ export function useIcaAddresses() {
           localChainId,
           account.address ? addressToBytes32(account.address) : "",
           addressToBytes32(
+            // @ts-expect-error
             hyperlaneContractAddresses[localChainMetadata.name]
               .interchainAccountRouter
           ),
