@@ -4,8 +4,13 @@ Small utility apps that help do common or useful [Hyperlane](https://hyperlane.x
 
 ### Apps
 
-- [ICA demo](./apps/ica-middleware/README.md)
-- [Gas helper](./apps/gas-payments/README.md)
+#### [ICA middleware](./apps/ica-middleware/README.md)
+
+Turn any wallet into an interchain enabled account.
+
+#### [Gas payment frontend](./apps/gas-payments/README.md)
+
+No more faffing about with Etherscan to pay gas for interchain messages.
 
 ### Contributing
 

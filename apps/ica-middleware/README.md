@@ -1,6 +1,14 @@
-## Hyperlane ICA demo
+## Hyperlane ICA middleware
 
-Utility application used in conjunction with WalletConnect to make any EOA a Hyperlane ICA enabled account.
+Turns any wallet - EOA or SC (incl. Gnosis Safes) - into an interchain enabled wallet.
+
+Imagine using your account on Polygon to easily lend on zkSync, swap on Arbitrum or mint NFTs on Optimism!
+
+### How does it work?
+
+One of the main features of the recent WalletConnect V2 launch (🎉🎉🎉) was their native multi-account/chain functionality. During the connection handshake wallets share a list of CAIP-10 identifiers so dapps can offer multi-chain experiences without needing to prompt additional chain or account switches from users.
+
+Pairing this with Hyperlane's interchain accounts, and deriving all the remote ICA addresses once we connect a wallet to the proxy, we’ve now turned our wallet into one that can be used anywhere Hyperlane is deployed. Dapps don’t need to know the difference between a standard account and an ICA one.
 
 ### Limitations
 
