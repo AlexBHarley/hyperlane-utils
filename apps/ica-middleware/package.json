@@ -9,10 +9,10 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@hyperlane-xyz/sdk": "^1.4.0",
-    "@hyperlane-xyz/utils": "^1.4.0",
+    "@hyperlane-xyz/sdk": "^1.4.2",
+    "@hyperlane-xyz/utils": "^1.4.2",
     "@json-rpc-tools/utils": "^1.7.6",
-    "@rainbow-me/rainbowkit": "^1.0.5",
+    "@rainbow-me/rainbowkit": "^1.0.6",
     "@tailwindcss/forms": "^0.5.3",
     "@walletconnect/core": "^2.9.0",
     "@walletconnect/types": "^2.9.0",
@@ -28,14 +28,14 @@
     "react-hot-toast": "^2.4.1",
     "tailwindcss": "^3.3.2",
     "ts-is-present": "^1.2.2",
-    "viem": "^1.2.13",
+    "viem": "^1.2.14",
     "wagmi": "1.2.0",
     "zustand": "^4.3.9"
   },
   "devDependencies": {
     "@types/node": "^17.0.12",
     "@types/react": "^18.2.14",
-    "@types/react-dom": "^18.2.6",
+    "@types/react-dom": "^18.2.7",
     "eslint-config-custom": "workspace:*",
     "lokijs": "^1.5.12",
     "tsconfig": "workspace:*",
