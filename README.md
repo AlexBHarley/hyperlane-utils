@@ -6,11 +6,11 @@ Small utility apps that help do common or useful [Hyperlane](https://hyperlane.x
 
 #### [ICA middleware](./apps/ica-middleware/README.md)
 
-Turn any wallet into an interchain enabled account.
+Turn any wallet into an interchain enabled account. Live demo deployed [here](https://hyperlane-ica-demo-web.vercel.app/).
 
 #### [Gas payment frontend](./apps/gas-payments/README.md)
 
-No more faffing about with Etherscan to pay gas for interchain messages.
+No more faffing about with Etherscan to pay gas for interchain messages. Live demo deployed [here](https://hyperlane-utils-gas-payments.vercel.app/).
 
 ### Contributing
 

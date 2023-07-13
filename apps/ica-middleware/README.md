@@ -4,6 +4,8 @@ Turns any wallet - EOA or SC (incl. Gnosis Safes) - into an interchain enabled w
 
 Imagine using your account on Polygon to easily lend on zkSync, swap on Arbitrum or mint NFTs on Optimism!
 
+Live demo deployed [here](https://hyperlane-ica-demo-web.vercel.app/).
+
 ### How does it work?
 
 One of the main features of the recent WalletConnect V2 launch (🎉🎉🎉) was their native multi-account/chain functionality. During the connection handshake wallets share a list of CAIP-10 identifiers so dapps can offer multi-chain experiences without needing to prompt additional chain or account switches from users.
