@@ -16,13 +16,19 @@ Pairing this with Hyperlane's interchain accounts, and deriving all the remote I
 
 #### Required gas balance
 
-Dapps often require the active account to have a sufficient gas balance before allowing transactions to be issued. In the context of an ICA where gas is paid via the origin chain, it's not usually necessary that an ICA needs to hold any native tokens.
+Dapps often require the active account to have a sufficient gas balance before allowing transactions to be issued. In the context of an ICA where gas is paid via the origin chain, it's not actually necessary that an ICA maintains a gas token balance.
 
-However because the dapp thinks the ICA will be issuing transactions, it will often need to have a small gas balance despite it never being used.
+However because the dapp thinks the ICA will be issuing transactions, it will often need to have a small gas balance despite this never being used.
 
 #### Signatures
 
-Some dapps (e.g. OpenSea, 1Inch) require users to sign ToS before being given access. When the active account session is an ICA it will be impossible to sign with this account.
+Some dapps (e.g. OpenSea, 1Inch) require users to sign terms of service before being allowed access. When the active account session is an ICA it will be impossible to sign with this account.
+
+#### Slow destination transaction hash indexing
+
+Interchain messages are actually pretty quick to land on the destination chain, however the [Hyperlane explorer indexer](https://explorer.hyperlane.xyz/api-docs) can sometimes be slow to finalise destination chain transactions. This time to finality varies heavily based on the chain you're trying to send messages to.
+
+Because we need to wait for the hash of the destination transaction to pass back to the dapp, some dapps will time out requests before the indexer has retrieved this hash, but the transaction will usually be successful.
 
 #### Transaction validation
 
